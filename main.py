@@ -76,6 +76,10 @@ class QRCodeApp(Gtk.Window):
         if response == Gtk.ResponseType.OK:
             filename = dialog.get_filename()
 
+            # Display the imported QR image
+            pixbuf = GdkPixbuf.Pixbuf.new_from_file(filename)
+            self.qr_image.set_from_pixbuf(pixbuf)
+
             image = cv2.imread(filename)
             gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
@@ -119,7 +123,7 @@ class QRCodeApp(Gtk.Window):
     def on_drag_data_received(self, widget, drag_context, x, y, data, info, time):
         uri_list = data.get_uris()
         if uri_list:
-            filename = Gtk.filename_from_uri(uri_list[0])
+            filename = file_path = uri_list[0].replace("file://", "")
             self.decode_image_file(filename)
 
     def decode_image_file(self, filename):
@@ -132,10 +136,13 @@ class QRCodeApp(Gtk.Window):
 
             if decoded_data:
                 self.entry.set_text(decoded_data)
-            else:
-                self.show_error_dialog("No QR Code found in the image")
+
+            # Display the imported QR image
+            pixbuf = GdkPixbuf.Pixbuf.new_from_file(filename)
+            self.qr_image.set_from_pixbuf(pixbuf)
         except Exception as e:
             self.show_error_dialog(str(e))
+
 
     def show_error_dialog(self, message):
         dialog = Gtk.MessageDialog(
